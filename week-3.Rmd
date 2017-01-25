@@ -1,0 +1,69 @@
+---
+title: "Week-2 Assignment"
+author: "Palash Vinay Siddamsettiwar"
+date: "October 20, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Synopsis
+This week's assignment deals with understanding how to import data locally or from a website and how to export data. In the exercises listed below, we import a [csv](https://bradleyboehmke.github.io/public/data/reddit.csv), an [excel](http://www.huduser.gov/portal/datasets/fmr/fmr2017/FY2017_4050_FMR.xlsx) and a [text](http://academic.udayton.edu/kissock/http/Weather/gsod95-current/OHCINCIN.txt) from three different sources, either by downloading them first or by directly downloading them into R datasets
+
+#Packages Required
+Packages required in this module are limited to ones used to import excel files into R and to present tables on rmarkdown. Gdata serves as an excellent package to import excel documents both locally and from an URL. DT package's datatable function is used to stylize and improve the way the tables are printed in an HTML Rmarkdown file.
+
+``` {r message=F}
+#install.packages("gdata")
+library("gdata")
+#install.packages("DT")
+library("DT")
+```
+
+#Homework Problems
+* **Download & import the csv file located at: https://bradleyboehmke.github.io/public/data/reddit.csv**
+``` {r}
+reddit_dl <- read.csv("reddit.csv")
+str(reddit_dl)
+DT::datatable(head(reddit_dl[1:7]), style="bootstrap")
+```
+<br>
+<br>
+* **Now import the above csv file directly from the url provided (without downloading to your local hard drive)**
+``` {r}
+reddit_url = "https://bradleyboehmke.github.io/public/data/reddit.csv"
+reddit_dl_url <- read.csv(reddit_url)
+str(reddit_dl_url)
+DT::datatable(head(reddit_dl_url[1:7]), style="bootstrap")
+```
+<br>
+<br>
+* **Download & import the .xlsx file located at: http://www.huduser.gov/portal/datasets/fmr/fmr2017/FY2017_4050_FMR.xlsx**
+
+``` {r}
+fmr_dl <- read.xls("FY2017_4050_FMR.xlsx")
+str(fmr_dl)
+DT::datatable(head(fmr_dl[1:7]), style="bootstrap")
+```
+<br>
+<br>
+* **Now import the above .xlsx file directly from the url provided (without downloading to your local hard drive)**
+``` {r}
+fmr_url <- "http://www.huduser.gov/portal/datasets/fmr/fmr2017/FY2017_4050_FMR.xlsx"
+fmr_dl_url <- read.xls(fmr_url)
+str(fmr_dl_url)
+DT::datatable(head(fmr_dl_url[1:7]), style="bootstrap")
+```
+<br>
+<br>
+* **Go to this University of Dayton webpage http://academic.udayton.edu/kissock/http/Weather/citylistUS.htm, scroll down to Ohio and import the Cincinnati (OHCINCIN.txt) file**
+``` {r}
+weather_url <- "http://academic.udayton.edu/kissock/http/Weather/gsod95-current/OHCINCIN.txt"
+weather <- read.table(weather_url, header=FALSE)
+str(weather)
+DT::datatable(head(weather), style="bootstrap")
+```
+<br>
+<br>

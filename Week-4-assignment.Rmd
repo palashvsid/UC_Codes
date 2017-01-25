@@ -1,0 +1,122 @@
+---
+title: "Week-4 assignment"
+author: "Palash Vinay Siddamsettiwar"
+date: "November 2, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Synopsis
+In this assignment, we learn how to use the data from gapminder package, and perform exploratory data analysis (EDA) on this data though data manipulation packages such as _dplyr_ and data visualizations from packages such as _ggplot2_. We find various parameters around gdp per capita growth over the last 55 years in the world generally and in my country of origin, India, in particular.
+
+##Packages Required
+
+**ggplot2** - This package helps with creation of plots in R
+``` {r, warning=F, message=F}
+#install.packages("ggplot2")
+library("ggplot2")
+```
+
+**dplyr** - This package contains a lot of great data manipulation functions (part of tidyverse)
+``` {r, warning=F, message=F}
+#install.packages("tidyverse")
+library("tidyverse")
+```
+
+**gapminder** - This package provides gapminder data as dataframes in R
+``` {r, warning=F, message=F}
+#install.packages("gapminder")
+library("gapminder")
+```
+
+##Source Code
+From the R function '?gapminder_unfiltered' and '?gapminder', we can see that the data contains 3313 observations across 6 variables. The 6 varaibles and their descriptions are: 
+
+1. **country**: Lists all the country names as a factor (187 levels)
+
+2. **continent**: Lists all the continent names as a factor (6 levels)
+
+3. **year**: Year ranging from 1952 to 2007 in increments of 1 year
+
+4. **lifeExp**: Life expectation at birth, in years, for the country
+
+5. **pop**: Population of the country
+
+6. **gdpPercap**: Gross Domestic Product per capita for the country
+
+**Missing Values:** `r colMeans(is.na(gapminder_unfiltered))*100`
+
+**Continents Included:** `r unique(gapminder_unfiltered$continent)[order(unique(gapminder_unfiltered$continent))]`
+
+**Number of Countries:** `r length(unique(gapminder_unfiltered$country)) `
+
+**Years Measured:** `r  paste0(min(unique(gapminder_unfiltered$year)), "-", max(unique(gapminder_unfiltered$year))) `
+
+##Exploratory Data Analysis
+**1. For the year 2007, what is the distribution of GDP per capita across all countries?**
+``` {r, warning=FALSE}
+boxplot(x = filter(gapminder_unfiltered, year==2007)$gdpPercap)
+ggplot(data = filter(gapminder_unfiltered, year==2007)) + 
+  geom_point(mapping = aes(x = country, y = gdpPercap))+
+  geom_text(label=gapminder_unfiltered$country)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+**2. For the year 2007, how do the distributions differ across the different continents?**
+``` {r }
+ggplot(data = filter(gapminder_unfiltered, year==2007)) + 
+  geom_point(mapping = aes(x = country, y = gdpPercap)) + 
+  facet_wrap(~ continent, nrow = 2)+
+    theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+**3. For the year 2007, what are the top 10 countries with the largest GDP per capita?**
+``` {r }
+arrange(filter(gapminder_unfiltered, year==2007)[c(1,6)], desc(gdpPercap))[c(1:10),]
+```
+
+**4. Plot the GDP per capita for your country of origin for all years available.**
+``` {r }
+country_of_origin="India"
+ggplot(data = filter(gapminder_unfiltered, country==country_of_origin), aes(x = year, y=gdpPercap)) + 
+  geom_bar(stat='identity')
+```
+
+**5. What was the percent growth (or decline) in GDP per capita in 2007?**
+``` {r }
+a <- filter(gapminder_unfiltered, year %in% c(2007,2002))
+a <- group_by(a, year)
+b<- summarise(a, avg_growth_gdpPercap = mean(gdpPercap, na.rm = TRUE))
+paste0("Percent growth (or decline) in GDP per capita in 2007 for the world was ", round(b[2,2]/b[1,2], 2), "%")
+```
+
+**6. What has been the historical growth (or decline) in GDP per capita for your country?**
+``` {r, warning=F}
+country_of_origin="India"
+india_data = filter(gapminder_unfiltered, country==country_of_origin)
+a <- as.data.frame(cbind(india_data$year, round((india_data$gdpPercap/lag(india_data$gdpPercap,1) - 1)*100, 2)))
+names(a) <-  c("Year", "Growth")
+a
+paste0("Average histoical growth (or decline) in GDP per capita for India is ", round(mean(a[-1,2], na.rm = T), 2), "%")
+
+ggplot(a, aes(Year, Growth)) + geom_line() +
+ xlab("Year") + ylab("Growth % in GDP per capita")
+```
+
+
+gapminder_unfiltered %>%
+  filter(year==2007) %>%
+  ggplot(aes("", gdpPercap))+
+  coord_flip()+
+  geom_text(aes(label=country), angle=90)+
+  coord_flip()
+  
+  
+gapminder_unfiltered %>%
+  filter(year==2007) %>%
+  

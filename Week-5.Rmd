@@ -1,0 +1,252 @@
+---
+title: "Week 5 Homework"
+author: "Palash Vinay Siddamsettiwar"
+date: "November 12, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Synopsis
+In this assignment, we look at the sample Air Force Institute of Technology data provided by the professor and understand and apply concepts such as tibbles, reshaping data, splitting and combining columns, creating new columns, pipe operator, joining, filtering and grouping data.
+
+##Packages Required
+
+**ggplot2** - This package helps with creation of plots in R
+``` {r, warning=F, message=F}
+#install.packages("ggplot2")
+library("ggplot2")
+```
+
+**readr** - This package helps to read data
+``` {r, warning=F, message=F}
+#install.packages("readr")
+library("readr")
+```
+
+**dplyr**, **tibble**,  **tidyr** - This package contains a lot of great data manipulation functions (part of tidyverse)
+``` {r, warning=F, message=F}
+#install.packages("tidyverse")
+library("tidyverse")
+```
+
+
+
+##Source Code  {.tabset}
+###**Bomber data sets** 
+These data provide the following information regarding the United States Air Force bomber aircraft:
+
+**Type**: Represents the type of aircraft. <br>
+**MD**: Represents the “Mission Design.” <br>
+**FY**: Fiscal year. <br>
+**Cost**: Represents the total operational cost of the aircraft. <br>
+**FH**: Represents the flying hours <br>
+
+
+###**Ws_programmatics** 
+This data provides weapon system programmatics information:
+
+**Base**: Represents the Air Force installation.<br>
+**Manpower_Ops**: Represents cost of pilots and operators required<br>
+**Manpower_Mx**: Represents cost of maintenance personnel required<br>
+**Manpower_Support_Staff**: Represents cost of support staff required<br>
+**Operating_Material**: Represents cost of operating material  required<br>
+**Mx_Consumables**: Represents cost of small consumable parts required<br>
+**Mx_DLR**: Represents cost of large parts (engine fans, aircraft seats, etc.) required<br>
+**Mx_Depot**: Represents cost of sending the weapon system to the depot for a large scale maintenance check.<br>
+**CLS**: Represents cost of contractor logistics support services<br>
+**Total_O.S**: Summation of all previously outlined cost elements.<br>
+**Avg_Inv**: Represents total number of weapon systems at the specified location<br>
+**TAI**: Represents total authorized weapon systems at the specified location<br>
+**End_Strength**: Represents total personnel<br>
+
+###**Ws_categorization**
+This data provides the system categorization for each aircraft:
+
+**System**: Represents the system classification of the weapon system.<br>
+
+##Exercises {.tabset}
+
+###Question 1 
+Import the bomber_wide.rds file, which lists the flying hours for each aircraft by year. Convert this data to a tibble and tidy it by changing it from a wide format to a long format so that you have the following columns: Type, MD, Year, & FH.
+
+``` {r}
+bomber_wide <- as_tibble(readRDS("data5/bomber_wide.rds"))
+bomber_wide %>% 
+    gather(Year, FH, `1996`:`2014`)
+```
+
+
+<br>
+<br>
+
+
+###Question 2 
+Import the bomber_long.rds data, which provides the value for three different outputs for each aircraft by year. The output measures include cost, flying hours, and gallons of gas consumed but these variables are “stacked” in the Output variable. Change this data to a tibble and convert to a wider format so that you have the following columns: Type, MD, FY, Cost, FH, & Gallons.
+
+``` {r}
+bomber_long <- as_tibble(readRDS("data5/bomber_long.rds"))
+bomber_long %>%
+  spread(key=Output, value=Value)
+```
+
+
+<br>
+<br>
+
+
+###Question 3
+Import the bomber_combined.rds file. Note that the first variable in this data (AC) combines the aircraft type (Bomber) and aircraft designator (i.e. B-1). This variable should be split into two. Take this data and convert it to a tibble and separate the AC variable into “Type” and “MD”.
+``` {r}
+bomber_combined <- as_tibble(readRDS("data5/bomber_combined.rds"))
+bomber_combined %>%
+  separate(AC, into = c("Type", "MD"), sep=" ")
+```
+
+<br>
+<br>
+
+
+###Question 4
+Import the bomber_prefix.rds data. Take this data and convert it to a tibble and unite the prefix and number variables into an “MD” variable so that the data matches the tidy data sets you produced in problems #2 and #3.
+``` {r}
+bomber_prefix <- as_tibble(readRDS("data5/bomber_prefix.rds"))
+bomber_prefix %>%
+  unite(MD, prefix, number, sep="-") %>%
+  spread(key=Output, value=Value)
+```
+
+<br>
+<br>
+
+
+###Question 5
+Import the bomber_mess.rds file so that it is a tibble. Clean this data up by making it contain the following variables:
+
+* Type
+* MD which combines the prefix and number variable (i.e. “B-1”)
+* FY which is the left part of the Metric variable
+* Cost which is captured in the right part of the Metric variable
+* FH which is captured in the right part of the Metric variable
+* Gallons which is captured in the right part of the Metric variable
+
+Once you’ve created the above tidy data, plot the historical trends of this data in ggplot2 with a line chart such that the plot is facetted by the Cost, FH, and Gallons variables and each facet compares the different MDs (“B-1”, “B-2”, “B-52”).
+``` {r}
+bomber_mess <- as_tibble(readRDS("data5/bomber_mess.rds"))
+bomber_mess %>%
+  unite(MD, prefix, number, sep="-") %>%
+  separate(Metric, into = c("FY", "Metric"), sep="_") %>%
+  spread(key=Metric, value=Value)
+
+bomber_mess <- bomber_mess %>%
+  unite(MD, prefix, number, sep="-") %>%
+  separate(Metric, into = c("FY", "Metric"), sep="_")
+
+bomber_mess %>%
+  ggplot(aes(x=FY, y=Value, color=Metric, group=Metric)) +
+  geom_line() +facet_wrap(~MD) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+<br>
+<br>
+
+
+###Question 6
+Import the ws_programmatics.rds & ws_categorization.rds data so that they are tibbles and perform the following steps in sequence using the pipe operator (%>%).
+
+Join the ws_categorization data to the ws_programmatics data
+Filter for only FY 2014 data at the following Base: Minot AFB (ND)
+Filter for only Systems classified as “AIRCRAFT” or “MISSILES”
+Group the data by System level
+Calculate the total sum of the Total_O.S and End_Strength variables
+``` {r}
+ws_categorizations <- as_tibble(readRDS("data5/ws_categorizations.rds"))
+ws_programmatics <- as_tibble(readRDS("data5/ws_programmatics.rds"))
+
+ws_programmatics %>%
+  left_join(ws_categorizations, by=c("Base", "MD")) %>%
+  filter(FY== "2014") %>%
+  filter(Base== "MINOT AFB (ND)") %>%
+  filter(System == "AIRCRAFT" | System == "MISSILES") %>%
+  group_by(System) %>%
+  summarize(Total_O.S=sum(Total_O.S), Total_End_Strength= sum(End_Strength))
+
+```
+
+<br>
+<br>
+
+
+###Question 7
+Once again, join the ws_programmatics.rds & ws_categorization.rds data; however, this time identify which Base had the largest cost per flying hour (defined as CPFH=Total_O.S/FH which requires you to create a new variable) in 2014. Using a bar chart in ggplot2, plot these values for the top 10 bases with the largest cost per flying hour.
+``` {r}
+ws_categorizations <- as_tibble(readRDS("data5/ws_categorizations.rds"))
+ws_programmatics <- as_tibble(readRDS("data5/ws_programmatics.rds"))
+
+ws_programmatics <- ws_programmatics %>%
+  left_join(ws_categorizations, by=c("Base", "MD")) %>%
+  filter(FY== "2014") %>%
+  select(Base, Total_O.S, FH) %>%
+  group_by(Base) %>%
+  summarize(Total_O.S=sum(Total_O.S, na.rm=TRUE), FH= sum(FH, na.rm=TRUE)) %>%
+  mutate(CPFH= Total_O.S/FH) %>%
+  filter(CPFH != "Inf") 
+
+ws_programmatics %>%
+  top_n(1, CPFH)
+
+chart_data <- 
+ws_programmatics %>%
+  top_n(10, CPFH)
+
+chart_data %>%  
+  ggplot(aes(x=reorder(Base, CPFH), y=CPFH))+
+  geom_bar(stat="identity")+
+  coord_flip()+
+  labs(x="Base", y="CPFH")
+
+```
+
+<br>
+<br>
+
+###Question 8
+Using scatter plots in ggplot2, assess the relationship between the end strength (End_Strength) variable and total costs (Total_O.S). Provide three scatter plots that visually assesses this replationship from different angles (by FY, System, etc).
+``` {r}
+ws_categorizations <- as_tibble(readRDS("data5/ws_categorizations.rds"))
+ws_programmatics <- as_tibble(readRDS("data5/ws_programmatics.rds"))
+
+scatter_data <- 
+ws_programmatics %>%
+  left_join(ws_categorizations, by=c("Base", "MD"))
+  
+scatter_data %>%
+  ggplot(aes(x=End_Strength, y=Total_O.S))+
+  geom_point()+
+  facet_wrap(~FY)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+scatter_data %>%
+  ggplot(aes(x=End_Strength, y=Total_O.S))+
+  geom_point()+
+  facet_wrap(~Base)+
+  theme(axis.text.x=element_blank(),
+      axis.ticks.x=element_blank())+
+  theme(axis.text.y=element_blank(),
+      axis.ticks.y=element_blank())
+
+scatter_data %>%
+  ggplot(aes(x=End_Strength, y=Total_O.S))+
+  geom_point()+
+  facet_wrap(~System)+
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+<br>
+<br>

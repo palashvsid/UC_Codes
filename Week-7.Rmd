@@ -1,0 +1,106 @@
+---
+title: "Homework 7"
+author: "Palash Vinay Siddamsettiwar"
+date: "December 3, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Libraries Used
+
+* RSocrata: To read data off databases
+* DT: To format data into good-looking tables on Markdown
+* tidyverse: To clean data and create tibbles
+
+``` {r, message=FALSE, warning=FALSE}
+library("RSocrata")
+library("DT")
+library("tidyverse")
+library("readr")
+```
+<br>
+
+##Questions {.tabset}
+
+##Importing Data
+
+``` {r, warning=FALSE}
+inspection <- read.socrata("https://nycopendata.socrata.com/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/xx67-kt59")
+write_rds(inspection,"inspection.rds")
+```
+
+###Question 1
+1. Use the map function to identify the class of each variable.
+
+``` {r, warning=FALSE}
+  map(inspection, class)
+```
+
+###Question 2
+2. Notice how the date variables are in POSIXlt form. Create a function that takes a single argument (“x”) and checks if it is of POSIXlt class. If it is, have the function change the input to a simple Date class with as.Date. If not then, the function should keep the input class as is. Apply this function to each of the columns in the NY restaurant data set by using the map function. Be sure the final output is a tibble and not a list.
+
+``` {r, warning=FALSE}
+change_to_class <- function(x) {if(inherits(x, "POSIXlt")){as.Date(x)} else {x}}
+inspection_new <- inspection %>% 
+map(change_to_class) %>% 
+as_data_frame(stringsAsFactors=FALSE)
+
+as_tibble(inspection_new)
+```
+
+###Question 3
+3. Using this reformatted tibble, identify how many restaurants in 2016 had a violation regarding “mice”? How about “hair”? What about “sewage”? Hint: the VIOLATION.DESCRIPTION and INSPECTION.DATE variables will be useful here.
+
+Mice: 
+``` {r, warning=FALSE}
+inspection_new %>% 
+mutate(VIOLATION.DESCRIPTION = as.character(VIOLATION.DESCRIPTION)) %>%
+filter(format(as.Date(INSPECTION.DATE),"%Y") == 2016) %>%
+filter(grepl("mice",VIOLATION.DESCRIPTION)) %>%
+nrow()
+```
+
+Hair: 
+``` {r, warning=FALSE}
+inspection_new %>% 
+mutate(VIOLATION.DESCRIPTION = as.character(VIOLATION.DESCRIPTION)) %>%
+filter(format(as.Date(INSPECTION.DATE),"%Y") == 2016) %>%
+filter(grepl("hair",VIOLATION.DESCRIPTION)) %>%
+nrow()
+```
+
+Sewage: 
+``` {r, warning=FALSE}
+inspection_new %>% 
+mutate(VIOLATION.DESCRIPTION = as.character(VIOLATION.DESCRIPTION)) %>%
+filter(format(as.Date(INSPECTION.DATE),"%Y") == 2016) %>%
+filter(grepl("sewage",VIOLATION.DESCRIPTION)) %>%
+nrow()
+```
+
+
+###Question 4
+4. Create a function to apply to this tibble that takes a year and a regular expression (i.e. “mice”) and returns a ggplot bar chart of the top 20 restaurants with the most violations. Make sure the restaurants are properly rank-ordered in the bar chart
+
+``` {r, warning=FALSE}
+q4 <- function(data,expr,year) {
+    data %>% 
+    mutate(VIOLATION.DESCRIPTION = as.character(VIOLATION.DESCRIPTION)) %>%
+    filter(format(as.Date(INSPECTION.DATE),"%Y") == year) %>%
+    filter(grepl(expr,VIOLATION.DESCRIPTION)) %>%
+    group_by(DBA) %>%
+    summarize(expr = n() ) %>%
+    arrange(desc(expr)) %>%
+    head(20) %>% 
+    ggplot( aes(x = reorder(DBA, -expr), y = expr))  + geom_bar(stat = "identity") +
+    theme(axis.text.x=element_text(angle=90))+
+    labs(x= 'Restaurant')
+    
+    
+}
+
+q4(inspection_new,"mice",2016)
+```

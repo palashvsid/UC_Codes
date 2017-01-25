@@ -1,0 +1,55 @@
+---
+title: "Week-1 Assignment"
+author: "Palash Vinay Siddamsettiwar"
+date: "October 10, 2016"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+##Introducing Myself
+![](C:\Users\palas_000\Desktop\dp1.jpg)
+<p font-size="8">
+* I hail from a coal-mining town in Central India. 
+* Having completed my Civil Enginnering bachelors from BITS-Pilani, I started working in the field of Analytics to get away from Civil Engineering! 
+* Over my 2 years of professional experience, I worked for clients such as Paypal and Unilever on Marketing Analytics, customer acquistion funnel reporting and retail sales optimization. 
+
+* I have worked R as the primary method of programming in these 2 years along with SQL, Excel and QGIS (spatial analytics). 
+* After completing my masters, I plan to work as a Data Scientist in retail or technology domains and _hopefully be an entrepreneur one day_.
+</p>
+##Exercise
+
+###Question 1
+``` {r aa}
+aa <- 100*(1+(0.05/12))**24
+aa
+```
+
+###Question 2
+``` {r bb}
+bb <- 3333%/%222
+bb
+```
+*****
+###Question 3
+``` {r ccc}
+cc <- function(n) {(1+(1/n))**n}
+ccc <- cc(seq(1000000, 10000000, 100000))
+max(ccc)
+```
+
+###Question 4
+``` {r dd}
+dd <- function(D, K, h) {sqrt(2*D*K/h)}
+dd(1000, 5, 0.25)
+```
+
+###Question 5
+``` {r ee}
+ee <- function(P, r, n, t) {P*((1+r/n)**(n*t))}
+ee(100, 0.08, 12, 3)
+```
+
