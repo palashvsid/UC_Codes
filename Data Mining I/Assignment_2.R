@@ -30,7 +30,10 @@ for (i in 1:m)
   vec_MSE[i]= mysummary$sigma^2
 }
 
+# Part iii
 beta_mean = apply(df_beta, 2, mean)
 beta_bias = beta_mean - c(beta0, beta1, beta2)
 beta_var = apply(df_beta, 2, var)
 mse = beta_bias*beta_bias + beta_var
+vec_MSE[j]= mysummary$sigma^2
+
