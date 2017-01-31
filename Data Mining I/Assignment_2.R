@@ -28,5 +28,4 @@ for (i in 1:m)
   df_beta[j,]= lm.out$coefficients
   mysummary= summary(lm.out)
   vec_MSE[j]= mysummary$sigma^2
-  
 }
