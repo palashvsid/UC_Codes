@@ -1,3 +1,75 @@
+#Q1
+# Boston Housing Data
+# Load Data
+library(MASS)
+library(Hmisc)
+data(Boston)
+colnames(Boston)
+set.seed(687)
+summary(Boston)
+
+sample_index = sample(nrow(Boston), nrow(Boston) * 0.7)
+Boston_train = Boston[sample_index, ]
+Boston_test = Boston[-sample_index, ]
+
+cor(Boston_train$medv, Boston_train)
+ncol(Boston_train)
+summa<-describe(Boston_train)
+pairs(Boston_train)
+cor(Boston_train)
+(summa)
+
+model_1 = lm(medv ~ ., data = Boston_train)
+summary(model_1)
+model_1$coefficients
+AIC(model_1)
+BIC(model_1)
+library(leaps)
+subset_result = regsubsets(medv ~ ., data = Boston_train, nbest = 2, nvmax = 14)
+summary(subset_result)
+plot(subset_result, scale = "bic")
+
+model_1 = lm(medv ~ ., data = Boston_train)
+summary(model_1)
+model_1$coefficients
+AIC(model_1)
+BIC(model_1)
+nullmodel = lm(medv ~ 1, data = Boston_train)
+fullmodel = lm(medv ~ ., data = Boston_train)
+
+model.step = step(nullmodel, scope = list(lower = nullmodel, upper = fullmodel), direction = "forward")
+
+model_new=lm(medv ~ lstat + rm + ptratio + black + chas + nox + dis + zn + crim + rad + tax,data=Boston_train)
+summary(model_new)
+(summary(model_new)$sigma)^2
+
+pi = predict(object = model_new,Boston_test )
+mean((pi - Boston_test$medv)^2)
+mean(abs(pi - Boston_test$medv))
+
+
+#3
+library(boot)
+model_2 = glm(medv ~ lstat + rm + ptratio + black + chas + nox + dis + zn + crim + rad + tax , data = Boston)
+cv.glm(data = Boston, glmfit = model_2, K = 3)$delta[2]
+
+library(rpart)
+boston.rpart <- rpart(formula = medv ~ ., data = Boston_train)
+boston.rpart
+plot(boston.rpart)
+text(boston.rpart)
+
+
+boston.train.pred.tree = predict(boston.rpart)
+boston.test.pred.tree = predict(boston.rpart, Boston_test)
+mean((boston.test.pred.tree - Boston_test$medv)^2)
+
+boston.reg = lm(medv ~ lstat + rm + ptratio + black + chas + nox + dis + zn + crim + rad + tax , data = Boston_train)
+(summary(boston.reg)$sigma)^2
+boston.test.pred.reg = predict(boston.reg, Boston_test)
+mean((boston.test.pred.reg - Boston_test$medv)^2)
+
+#Q2
 #load the data
 bankruptcy <- read.csv("bankruptcy.csv", header = T)
 
